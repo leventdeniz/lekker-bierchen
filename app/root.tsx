@@ -33,10 +33,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+      <body className="min-h-screen bg-gradient-to-b from-beer-foam to-beer-cream py-8">
+        <div className="container mx-auto px-0">
+            <h1 className="text-4xl font-bold text-center text-beer-dark mb-8">
+                {/*🍺 Lekker Bierchen 🍺*/}
+            </h1>
+          {children}
+        </div>
+      <ScrollRestoration/>
+      <Scripts />
       </body>
     </html>
   );

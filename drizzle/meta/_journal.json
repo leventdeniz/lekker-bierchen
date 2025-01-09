@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1736360647088,
+      "tag": "0000_youthful_orphan",
+      "breakpoints": true
+    }
+  ]
+}
