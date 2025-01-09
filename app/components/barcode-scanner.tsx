@@ -8,8 +8,8 @@ import { Button } from '~/components/ui/button';
 const BarcodeScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const devicesIndexRef = useRef<number>(0);
   const [isScanning, setIsScanning] = useState(false);
-  const [devicesIndex, setDevicesIndex] = useState(0);
   const [deviceInfo, setDeviceInfo] = useState('');
   const [hasMoreThanOneDevice, setHasMoreThanOneDevice] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -26,7 +26,7 @@ const BarcodeScanner = () => {
       } else {
         setHasMoreThanOneDevice(false);
       }
-      const mediaDeviceInfo = videoInputDevices[devicesIndex ?? 0];
+      const mediaDeviceInfo = videoInputDevices[devicesIndexRef.current ?? 0];
       const selectedDeviceId = mediaDeviceInfo.deviceId;
       setDeviceInfo(mediaDeviceInfo.label + ' | ' + mediaDeviceInfo.deviceId);
 
@@ -57,8 +57,7 @@ const BarcodeScanner = () => {
   };
   const switchCamera = async () => {
     const videoInputDevices = await codeReader.current.listVideoInputDevices();
-    setDevicesIndex((prevIndex) => (prevIndex + 1) % videoInputDevices.length);
-    stopScanning();
+    devicesIndexRef.current = (devicesIndexRef.current + 1) % videoInputDevices.length;
     return startScanning();
   };
 
@@ -72,7 +71,7 @@ const BarcodeScanner = () => {
       <br/>
       result: {result}
       <br/>
-      activeCamId: {`${devicesIndex}`}
+      activeCamId: {`${devicesIndexRef.current}`}
       <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
         <video
           ref={videoRef}
