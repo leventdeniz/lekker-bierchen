@@ -27,7 +27,7 @@ const BarcodeScanner = () => {
         setHasMoreThanOneDevice(false);
       }
       const selectedDeviceId = videoInputDevices[devicesIndex].deviceId;
-      setDeviceInfo(videoInputDevices[devicesIndex].toJSON());
+      setDeviceInfo(videoInputDevices[devicesIndex].label);
 
       codeReader.current.decodeFromVideoDevice(
         selectedDeviceId,
