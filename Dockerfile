@@ -1,23 +1,23 @@
 FROM node:20-alpine AS development-dependencies-env
 COPY . /app
 WORKDIR /app
-RUN npm ci
+RUN yarn run ci
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json yarn.lock /app/
 WORKDIR /app
-RUN npm ci --omit=dev
+RUN yarn run ci --omit=dev
 
 FROM node:20-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
-RUN npm run migrations-migrate
-RUN npm run build
+RUN yarn run migrations-migrate
+RUN yarn run build
 
 FROM node:20-alpine
 COPY ./package.json yarn.lock /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 WORKDIR /app
-CMD ["npm", "run", "start"]
+CMD ["yarn", "run", "start"]
