@@ -8,7 +8,7 @@ import { Button } from '~/components/ui/button';
 const BarcodeScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const devicesIndexRef = useRef<number>(0);
+  const devicesIndexRef = useRef<number|null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState('');
   const [hasMoreThanOneDevice, setHasMoreThanOneDevice] = useState(false);
@@ -26,7 +26,7 @@ const BarcodeScanner = () => {
       } else {
         setHasMoreThanOneDevice(false);
       }
-      const mediaDeviceInfo = videoInputDevices[devicesIndexRef.current ?? 0];
+      const mediaDeviceInfo = videoInputDevices[devicesIndexRef.current ?? videoInputDevices.length - 1];
       const selectedDeviceId = mediaDeviceInfo.deviceId;
       setDeviceInfo(mediaDeviceInfo.label + ' |\n ' + mediaDeviceInfo.groupId);
 
@@ -57,7 +57,7 @@ const BarcodeScanner = () => {
   };
   const switchCamera = async () => {
     const videoInputDevices = await codeReader.current.listVideoInputDevices();
-    devicesIndexRef.current = (devicesIndexRef.current + 1) % videoInputDevices.length;
+    devicesIndexRef.current = ((devicesIndexRef.current ?? 0) + 1) % videoInputDevices.length;
     return startScanning();
   };
 
