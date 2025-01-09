@@ -9,13 +9,14 @@ const BarcodeScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [devicesIndex, setDevicesIndex] = useState(1);
+  const [devicesIndex, setDevicesIndex] = useState(0);
+  const [deviceInfo, setDeviceInfo] = useState('');
   const [hasMoreThanOneDevice, setHasMoreThanOneDevice] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState('');
   const codeReader = useRef(new BrowserMultiFormatReader());
 
-  const startScanning = async() => {
+  const startScanning = async () => {
     try {
       setIsScanning(true);
       setError('');
@@ -25,6 +26,7 @@ const BarcodeScanner = () => {
       } else {
         setHasMoreThanOneDevice(false);
       }
+      setDeviceInfo(videoInputDevices[devicesIndex].toJSON());
       const selectedDeviceId = videoInputDevices[devicesIndex].deviceId;
 
       codeReader.current.decodeFromVideoDevice(
@@ -116,6 +118,10 @@ const BarcodeScanner = () => {
         <div className="text-red-500 text-center">
           {error}
         </div>
+      )}
+
+      {deviceInfo && (
+        <pre>{JSON.stringify(deviceInfo, null, 2)}</pre>
       )}
     </div>
   );
