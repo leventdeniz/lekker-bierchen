@@ -6,7 +6,7 @@ RUN yarn install --frozen-lockfile
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json yarn.lock /app/
 WORKDIR /app
-RUN yarn workspaces focus --production
+RUN yarn install --production --frozen-lockfile
 
 FROM node:20-alpine AS build-env
 COPY . /app/
@@ -16,7 +16,6 @@ RUN yarn run migrations-migrate
 RUN yarn run build
 
 FROM node:20-alpine
-RUN yarn set version stable
 COPY ./package.json yarn.lock /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
