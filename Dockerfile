@@ -1,12 +1,12 @@
 FROM node:20-alpine AS development-dependencies-env
 COPY . /app
 WORKDIR /app
-RUN yarn run ci
+RUN yarn install --frozen-lockfile
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json yarn.lock /app/
 WORKDIR /app
-RUN yarn run ci --omit=dev
+RUN yarn workspaces focus --production
 
 FROM node:20-alpine AS build-env
 COPY . /app/
