@@ -26,8 +26,8 @@ const BarcodeScanner = () => {
       } else {
         setHasMoreThanOneDevice(false);
       }
-      setDeviceInfo(videoInputDevices[devicesIndex].toJSON());
       const selectedDeviceId = videoInputDevices[devicesIndex].deviceId;
+      setDeviceInfo(videoInputDevices[devicesIndex].toJSON());
 
       codeReader.current.decodeFromVideoDevice(
         selectedDeviceId,
@@ -40,7 +40,7 @@ const BarcodeScanner = () => {
         },
       );
     } catch (err) {
-      setError('Failed to access camera');
+      setError('Failed to access camera: '+ err.message);
       setIsScanning(false);
     }
   };
