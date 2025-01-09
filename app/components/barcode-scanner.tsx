@@ -53,7 +53,8 @@ const BarcodeScanner = () => {
     codeReader.current.reset();
   };
   const switchCamera = async () => {
-    setDevicesIndex((prev) => prev === 0 ? 1 : 0);
+    const videoInputDevices = await codeReader.current.listVideoInputDevices();
+    setDevicesIndex((prevIndex) => (prevIndex + 1) % videoInputDevices.length);
     stopScanning();
     return startScanning();
   };
