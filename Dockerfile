@@ -16,6 +16,8 @@ RUN yarn run migrations-migrate
 RUN yarn run build
 
 FROM node:20-alpine
+RUN corepack enable
+RUN yarn set version stable
 COPY ./package.json yarn.lock /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
