@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, CameraOff } from 'lucide-react';
+import { Camera, CameraOff, SwitchCamera } from 'lucide-react';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import { Button } from '~/components/ui/button';
 
@@ -9,7 +9,9 @@ const BarcodeScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [result, setResult] = useState<string|null>(null);
+  const [devicesIndex, setDevicesIndex] = useState(0);
+  const [hasMoreThanOneDevice, setHasMoreThanOneDevice] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState('');
   const codeReader = useRef(new BrowserMultiFormatReader());
 
@@ -18,7 +20,12 @@ const BarcodeScanner = () => {
       setIsScanning(true);
       setError('');
       const videoInputDevices = await codeReader.current.listVideoInputDevices();
-      const selectedDeviceId = videoInputDevices[0].deviceId;
+      if (videoInputDevices.length > 1) {
+        setHasMoreThanOneDevice(true);
+      } else {
+        setHasMoreThanOneDevice(false);
+      }
+      const selectedDeviceId = videoInputDevices[devicesIndex].deviceId;
 
       codeReader.current.decodeFromVideoDevice(
         selectedDeviceId,
@@ -45,6 +52,9 @@ const BarcodeScanner = () => {
     }
     codeReader.current.reset();
   };
+  const switchCamera = async() => {
+    setDevicesIndex((prev) => prev === 0 ? 1 : 0);
+  };
 
   useEffect(() => {
     return () => stopScanning();
@@ -55,6 +65,8 @@ const BarcodeScanner = () => {
       scanning: {isScanning ? 'true' : 'false'}
       <br/>
       result: {result}
+      <br/>
+      activeCamId: {`${devicesIndex}`}
       <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
         <video
           ref={videoRef}
@@ -77,12 +89,21 @@ const BarcodeScanner = () => {
         )}
         {isScanning && (
           <div className="absolute bottom-0 right-0 flex items-center justify-center">
+            {hasMoreThanOneDevice && (
+              <Button
+                onClick={switchCamera}
+                className="flex items-center  bg-red-500 text-white rounded-lg"
+                size="icon"
+              >
+                <SwitchCamera/>
+              </Button>
+            )}
             <Button
               onClick={stopScanning}
               className="flex items-center  bg-red-500 text-white rounded-lg"
               size="icon"
             >
-              <CameraOff />
+              <CameraOff/>
             </Button>
           </div>
         )}
