@@ -9,7 +9,7 @@ const BarcodeScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [devicesIndex, setDevicesIndex] = useState(0);
+  const [devicesIndex, setDevicesIndex] = useState(1);
   const [hasMoreThanOneDevice, setHasMoreThanOneDevice] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -52,8 +52,10 @@ const BarcodeScanner = () => {
     }
     codeReader.current.reset();
   };
-  const switchCamera = async() => {
+  const switchCamera = async () => {
     setDevicesIndex((prev) => prev === 0 ? 1 : 0);
+    stopScanning();
+    return startScanning();
   };
 
   useEffect(() => {
