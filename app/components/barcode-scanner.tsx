@@ -5,7 +5,7 @@ import { Camera, CameraOff, SwitchCamera } from 'lucide-react';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import { Button } from '~/components/ui/button';
 
-const BarcodeScanner = () => {
+const BarcodeScanner = ({ callbackFn }: { callbackFn?: (result: string) => void}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const devicesIndexRef = useRef<number|null>(null);
@@ -35,13 +35,13 @@ const BarcodeScanner = () => {
         videoRef.current,
         (result) => {
           if (result) {
-            setResult(result.getText());
+            callbackFn?.(result.getText());
             stopScanning();
           }
         },
       );
     } catch (err) {
-      setError('Failed to access camera: '+ err.message);
+      setError('Failed to access camera: '+ (err instanceof Error ? err.message : ''));
       setIsScanning(false);
     }
   };
@@ -67,11 +67,6 @@ const BarcodeScanner = () => {
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
-      scanning: {isScanning ? 'true' : 'false'}
-      <br/>
-      result: {result}
-      <br/>
-      activeCamId: {`${devicesIndexRef.current}`}
       <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
         <video
           ref={videoRef}
@@ -118,10 +113,6 @@ const BarcodeScanner = () => {
         <div className="text-red-500 text-center">
           {error}
         </div>
-      )}
-
-      {deviceInfo && (
-        <pre>{JSON.stringify(deviceInfo, null, 2)}</pre>
       )}
     </div>
   );
