@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS `drinks` (
 	CONSTRAINT `drinks_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-ALTER TABLE `ratings` DROP FOREIGN KEY `ratings_beer_beers_id_fk`;
-DROP TABLE `beers`;--> statement-breakpoint
+ALTER TABLE `ratings` DROP FOREIGN KEY `ratings_beer_beers_id_fk`;--> statement-breakpoint
+DROP TABLE `beers`;
 --> statement-breakpoint
 ALTER TABLE `drinking_logs` ADD CONSTRAINT `drinking_logs_drink_drinks_id_fk` FOREIGN KEY (`drink`) REFERENCES `drinks`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `drinking_logs` ADD CONSTRAINT `drinking_logs_rating_ratings_id_fk` FOREIGN KEY (`rating`) REFERENCES `ratings`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
