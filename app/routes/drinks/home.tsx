@@ -1,4 +1,4 @@
-import { Form, Link } from 'react-router';
+import { Form, Link, redirect } from 'react-router';
 import { Card, CardDescription, CardTitle } from '~/components/ui/card';
 import { format } from 'date-fns';
 import { Label } from '~/components/ui/label';
@@ -36,7 +36,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   let breweryId = Number(formData.get('brewery'));
-  console.log({ breweryId });
   if (isNaN(breweryId)) {
     const ids = await db.insert(breweries)
                         .values({ name: formData.get('brewery') as string, createdAt: new Date() })
@@ -52,6 +51,7 @@ export async function action({ request }: Route.ActionArgs) {
                                    createdAt: new Date(),
                                    updatedAt: new Date(),
                                  });
+  return redirect('/drinks?created=true');
 }
 
 export default function DrinksHome({ loaderData }: Route.ComponentProps) {
@@ -64,7 +64,7 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
   const { drinks, breweries } = loaderData;
   return (
     <div className="max-w-2xl mx-auto px-4 space-y-4">
-      <h2 className="text-xl font-bold text-beer-dark">Getränkehersteller / Marken</h2>
+      <h2 className="text-xl font-bold text-beer-dark">Getränke</h2>
       <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-x-scroll overflow-y-visible p-0.5 -m-0.5">
         {drinks.map((drink) => (
           <Link to={`/drinks/${drink.id}`} key={drink.id}>
@@ -118,6 +118,7 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
                 type="number"
                 value={barcode ? `${barcode}` : undefined}
                 placeholder="123123123"
+                onChange={(e) => setBarcode(Number(e.target.value))}
               />
               <Dialog open={showBarcodeScanner} onOpenChange={setShowBarcodeScanner}>
                 <DialogTrigger>

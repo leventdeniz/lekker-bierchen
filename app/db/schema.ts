@@ -1,10 +1,10 @@
-import { mysqlTable, int, varchar, text, timestamp, decimal } from 'drizzle-orm/mysql-core';
+import { mysqlTable, int, varchar, text, timestamp, decimal, bigint } from 'drizzle-orm/mysql-core';
 import { relations } from 'drizzle-orm';
 
 // === === Drinks === ===
 export const drinks = mysqlTable('drinks', {
     id: int('id').primaryKey().autoincrement(),
-    barcode: int('barcode'),
+    barcode: bigint({ mode: 'number', unsigned: true }),
     name: varchar('name', { length: 255 }).notNull(),
     brewery: int('brewery').references(() => breweries.id),
     alcoholPercentage: decimal('alcohol_percentage', { precision: 4, scale: 1 }),

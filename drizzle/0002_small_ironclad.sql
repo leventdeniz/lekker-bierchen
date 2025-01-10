@@ -1,0 +1,1 @@
+ALTER TABLE `drinks` MODIFY COLUMN `barcode` bigint unsigned;
