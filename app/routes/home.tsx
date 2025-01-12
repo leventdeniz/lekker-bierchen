@@ -3,7 +3,7 @@ import AddBeerButton from '~/components/add-beer-button';
 import BarcodeScanner from '~/components/barcode-scanner';
 import RecentDrinksList from '~/components/recent-drinks-list';
 import { db } from '~/db';
-import { Link, redirect } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '~/components/ui/button';
 
 export function meta({}: Route.MetaArgs) {
@@ -37,13 +37,14 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { logs, drinks } = loaderData;
+  const navigate = useNavigate();
 
   const onBarcode = (barcode: string) => {
     const drink = drinks.find((d) => d.barcode === Number(barcode));
     if (drink) {
-      redirect(`/drinks/${drink.id}`);
+      navigate(`/drinks/${drink.id}`);
     } else {
-      redirect(`/drinks/new?barcode=${barcode}`);
+      navigate(`/drinks/new?barcode=${barcode}`);
     }
   };
   return (
