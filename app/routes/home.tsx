@@ -5,7 +5,7 @@ import RecentDrinksList from '~/components/recent-drinks-list';
 import { db } from '~/db';
 import { breweries, drinks } from '~/db/schema';
 import { eq } from 'drizzle-orm';
-import { Link } from 'react-router';
+import { Link, redirect } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 
@@ -23,10 +23,10 @@ export async function loader({ params }: Route.LoaderArgs) {
   //                      .orderBy(drinks.createdAt)
   //                      .limit(10);
   const drinks = await db.query.drinks.findMany({
-    with: {
-      brewery: true,
-    }
-  });
+                                                  with: {
+                                                    brewery: true,
+                                                  },
+                                                });
   const logs = await db.query.drinking_logs.findMany({
                                                        with: {
                                                          drink: true,
@@ -38,15 +38,20 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { logs,drinks } = loaderData;
+  const { logs, drinks } = loaderData;
+
+  const onBarcode = (barcode: string) => {
+    const drink = drinks.find((d) => d.barcode === Number(barcode));
+    if (drink) {
+      redirect(`/drinks/${drink.id}`);
+    } else {
+      redirect(`/drinks/new?barcode=${barcode}`);
+    }
+  };
   return (
     <div>
-      <div>drinks:</div>
-      <pre>{JSON.stringify(drinks, null, 2)}</pre>
-      <div>logs:</div>
-      <pre>{JSON.stringify(logs, null, 2)}</pre>
       <RecentDrinksList logs={logs}/>
-      <BarcodeScanner />
+      <BarcodeScanner callbackFn={onBarcode}/>
       <div className="absolute bottom-6 right-6">
         <AddBeerButton/>
       </div>
@@ -62,4 +67,4 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </Button>
     </div>
   );
-}
+};

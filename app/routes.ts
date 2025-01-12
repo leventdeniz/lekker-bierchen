@@ -6,6 +6,8 @@ export default [
   ...prefix("drinks", [
     index("routes/drinks/home.tsx"),
     route(":id", "routes/drinks/drink.tsx"),
+    route(":id/edit", "routes/drinks/edit.tsx"),
+    route(":id/log", "routes/drinks/log.tsx"),
     route("new", "routes/drinks/new.tsx"),
   ]),
 

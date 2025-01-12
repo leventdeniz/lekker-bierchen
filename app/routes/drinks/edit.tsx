@@ -1,86 +1,81 @@
+import { useState } from 'react';
 import { Form, Link, redirect } from 'react-router';
-import { Card, CardDescription, CardTitle } from '~/components/ui/card';
-import { format } from 'date-fns';
-import { Label } from '~/components/ui/label';
+import { Card } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/button';
-import type { Route } from '../../../.react-router/types/app/routes/drinks/+types/home';
+import { Label } from '~/components/ui/label';
+import type { Route } from '../../../.react-router/types/app/routes/drinks/+types/edit';
 import { db } from '~/db';
-import { breweries, drinks } from '~/db/schema';
+import { eq } from 'drizzle-orm';
+import { drinking_logs, drinks } from '~/db/schema';
+import { ArrowLeft, Camera, ChevronLeft, Plus, Trash, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { useState } from 'react';
-import { ArrowLeft, Camera, Plus } from 'lucide-react';
-import BarcodeScanner from '~/components/barcode-scanner';
 import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog';
+import BarcodeScanner from '~/components/barcode-scanner';
+
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const drinks = await db.query.drinks.findMany({
+  const drink = await db.query.drinks.findFirst({
                                                   with: {
                                                     brewery: true,
                                                   },
+                                                  where: eq(drinks.id, Number(params.id)),
                                                 });
   const breweries = await db.query.breweries.findMany();
-  return { drinks, breweries };
+  const logs = await db.query.drinking_logs.findMany({
+                                                       with: {
+                                                         drink: true,
+                                                       },
+                                                       where: eq(drinking_logs.drink, Number(params.id)),
+                                                     });
+  return { drink, breweries, logs };
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+
+  if (intent === 'delete') {
+    await db.delete(drinks).where(eq(drinks.id, Number(params.id)));
+    return redirect(`/drinks/${params.id}`);
+  }
 
   const name = formData.get('name') as string;
-  const alcohol = formData.get('alcohol') as string;
-
-  const barcodeString = formData.get('barcode');
-  let barcode = null as number | null;
-  if (barcodeString != null && !isNaN(Number(barcodeString))) {
-    barcode = Number(barcodeString);
-  }
-
-  let breweryId = Number(formData.get('brewery'));
-  if (isNaN(breweryId)) {
-    const ids = await db.insert(breweries)
-                        .values({ name: formData.get('brewery') as string, createdAt: new Date() })
-                        .$returningId();
-    breweryId = ids[0].id;
-  }
-
-  await db.insert(drinks).values({
-                                   name,
-                                   barcode,
-                                   brewery: breweryId,
-                                   alcoholPercentage: alcohol,
-                                   createdAt: new Date(),
-                                   updatedAt: new Date(),
-                                 });
-  return redirect('/drinks?created=true');
+  await db.update(drinks).set({ name }).where(eq(drinks.id, Number(params.id)));
+  return redirect(`/drinks/${params.id}`);
 }
 
-export default function DrinksHome({ loaderData }: Route.ComponentProps) {
+export default function DrinkEdit ({ loaderData }: Route.ComponentProps) {
   const [createNewBrewery, setCreateNewBrewery] = useState(false);
   const [alcohol, setAlcohol] = useState('0');
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcode, setBarcode] = useState<number | null>(null);
   const toggleCreateNewBrewery = () => setCreateNewBrewery((prev) => !prev);
 
-  const { drinks, breweries } = loaderData;
+  const { drink, breweries, logs } = loaderData;
+  if (!drink) {
+    return (
+      <div>Drink not found</div>
+    );
+  }
+
+
   return (
-    <div className="max-w-2xl mx-auto px-4 space-y-4">
-      <h2 className="text-xl font-bold text-beer-dark">Getränke</h2>
-      <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-x-scroll overflow-y-visible p-0.5 -m-0.5">
-        {drinks.map((drink) => (
-          <Link to={`/drinks/${drink.id}`} key={drink.id}>
-            <Card className="">
-              {drink.brewery && (
-                <CardDescription>{drink.brewery.name}</CardDescription>
-              )}
-              <CardTitle>{drink.name}</CardTitle>
-              {drink.updatedAt && (
-                <CardDescription>{format(drink.updatedAt, 'dd.MM.yy HH:mm')}</CardDescription>
-              )}
-            </Card>
-          </Link>
-        ))}
-      </div>
-      <Form method="post" action="/drinks">
+    <>
+      <pre>{JSON.stringify(logs, null, 2)}</pre>
+      <Form method="post" className="flex flex-col max-w-2xl mx-auto px-4 gap-4">
+        <div className="flex justify-between">
+          <h2 className="text-xl font-bold text-beer-dark">{`${drink.brewery?.name} ${drink.name}`}</h2>
+          <Button
+            type="submit"
+            name="intent"
+            value="delete"
+            size="sm"
+            variant="destructive"
+          >
+            <Trash2 size={24}/>
+          </Button>
+        </div>
         <Card className="p-4 space-y-4">
           <h3 className="font-bold">Neues Getränk</h3>
           <div className="space-y-2">
@@ -94,7 +89,7 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
             {createNewBrewery ? (
               <Input name="brewery" placeholder="fritz Cola"/>
             ) : (
-               <Select name="brewery">
+               <Select name="brewery" defaultValue={drink.brewery ? `${drink.brewery.id}` : undefined}>
                  <SelectTrigger>
                    <SelectValue placeholder="Wähle einen Hersteller"/>
                  </SelectTrigger>
@@ -108,7 +103,7 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input name="name" placeholder="Alkoholfreies"/>
+            <Input name="name" placeholder="Alkoholfreies" defaultValue={drink.name}/>
           </div>
           <div className="space-y-2">
             <Label htmlFor="barcode">Barcode</Label>
@@ -147,12 +142,15 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
           <Button type="submit" className="w-full">Speichern</Button>
         </Card>
       </Form>
+
       <Button variant="link" asChild className="w-full mt-4">
-        <Link to="/">
+        <Link to={'/drinks/' + drink.id}>
           <ArrowLeft/>
           zurück
         </Link>
       </Button>
-    </div>
+    </>
   );
 }
+
+

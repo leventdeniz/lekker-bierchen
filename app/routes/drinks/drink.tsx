@@ -1,20 +1,28 @@
 import { Form, Link, redirect } from 'react-router';
-import { Card } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
-import { Label } from '~/components/ui/label';
 import type { Route } from '../../../.react-router/types/app/routes/drinks/+types/drink';
 import { db } from '~/db';
-import { breweries, drinks } from '~/db/schema';
+import { drinking_logs, drinks } from '~/db/schema';
 import { eq } from 'drizzle-orm';
-import { ArrowLeft, ChevronLeft, Plus, Trash, Trash2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { useState } from 'react';
+import { ArrowLeft, Beer, Pencil } from 'lucide-react';
+import { format } from 'date-fns';
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const drink = await db.select().from(drinks).where(eq(drinks.id, Number(params.id))).limit(1);
-  const breweries = await db.query.breweries.findMany();
-  return { drink: drink[0], breweries };
+  const drink = await db.query.drinks.findFirst({
+                                                  with: {
+                                                    brewery: true,
+                                                  },
+                                                  where: eq(drinks.id, Number(params.id)),
+                                                });
+  const logs = await db.query.drinking_logs.findMany({
+                                                       with: {
+                                                         drink: true,
+                                                         rating: true,
+                                                       },
+                                                       where: eq(drinking_logs.drink, Number(params.id)),
+                                                     });
+  return { drink, logs };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -32,78 +40,68 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function DrinksDrink({ loaderData }: Route.ComponentProps) {
-  const [createNewBrewery, setCreateNewBrewery] = useState(false);
-  const [alcohol, setAlcohol] = useState('0');
-  const toggleCreateNewBrewery = () => setCreateNewBrewery((prev) => !prev);
+  const { drink, logs } = loaderData;
+  if (!drink) {
+    return (
+      <div>Drink not found</div>
+    );
+  }
 
-  const { drink, breweries } = loaderData;
   return (
     <>
-      <Form method="post" action="/drinks" className="flex flex-col max-w-2xl mx-auto px-4 gap-4">
-        <div className="flex justify-between">
-          <h2 className="text-xl font-bold text-beer-dark">{drink.name}</h2>
-          <Button
-            type="submit"
-            name="intent"
-            value="delete"
-            size="sm"
-            variant="destructive"
-          >
-            <Trash2 size={24}/>
-          </Button>
-        </div>
-        <Card className="p-4 space-y-4">
-          <h3 className="font-bold">Neues Getränk</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="brewery">Herrsteller</Label>
-              <Button onClick={toggleCreateNewBrewery} size="xs" variant="secondary" className="p-1">
-                <Plus size={12}/>
-                neu &nbsp;
+      <div className="max-w-2xl mx-auto px-4 space-y-4">
+        <h2 className="text-xl font-bold text-beer-dark">{`${drink.brewery?.name} ${drink.name}`}</h2>
+        {logs.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-x-scroll overflow-y-visible p-0.5 -m-0.5">
+            {logs.map((log) => (
+              <Card className="">
+                <CardTitle>{format(log.createdAt, 'dd.MM.yy HH:mm')}</CardTitle>
+                {log.rating && (
+                  <>
+                    <CardDescription>Bitter: {log.rating.bitterness}</CardDescription>
+                    <CardDescription>Säure: {log.rating.sourness}</CardDescription>
+                    <CardDescription>Süße: {log.rating.sweetness}</CardDescription>
+                    <CardDescription>Gesamt: {log.rating.overallRating}</CardDescription>
+                    <CardDescription>Notitzen: {log.rating.notes}</CardDescription>
+                  </>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">{`${drink.brewery?.name} ${drink.name}`}</CardTitle>
+            {drink.updatedAt && (
+              <CardDescription>{format(drink.updatedAt, 'dd.MM.yy HH:mm')}</CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div>Alk: {drink.alcoholPercentage} %</div>
+            <div>Code: {drink.barcode}</div>
+          </CardContent>
+          <CardFooter className="justify-between">
+            <Button variant="default" size="sm" asChild className="">
+              <Link to={`/drinks/${drink.id}/edit`}>
+                <Pencil />
+                bearbeiten
+              </Link>
+            </Button>
+            <Form method="post" action={`/drinks/${drink.id}/log` }>
+              <Button type="submit" variant="default" size="sm" className="">
+                <Beer />
+                trinken
               </Button>
-            </div>
-            {createNewBrewery ? (
-              <Input name="brewery" placeholder="fritz Cola"/>
-            ) : (
-               <Select name="brewery" defaultValue={`${drink.brewery}`}>
-                 <SelectTrigger>
-                   <SelectValue placeholder="Wähle einen Hersteller"/>
-                 </SelectTrigger>
-                 <SelectContent>
-                   {breweries.map((brewery) => (
-                     <SelectItem value={`${brewery.id}`} key={brewery.id}>{brewery.name}</SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input name="name" placeholder="Alkoholfreies" defaultValue={drink.name}/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="barcode">Barcode</Label>
-            <Input name="barcode" type="number" placeholder="123123123" defaultValue={`${drink.barcode}`}/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="alcohol">alc%</Label>
-            <div className="flex flex-row gap-2">
-              <Input name="alcohol" value={alcohol} onChange={(e) => setAlcohol(e.target.value)} type="number" placeholder="0.0"/>
-              <Button variant="secondary" onClick={() => setAlcohol('0')}>0.0%</Button>
-              <Button variant="secondary" onClick={() => setAlcohol('0.1')}>{'<0.5%'}</Button>
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full">Speichern</Button>
+            </Form>
+          </CardFooter>
         </Card>
-      </Form>
-
-      <Button variant="link" asChild className="w-full mt-4">
-        <Link to="/drinks">
-          <ArrowLeft/>
-          zurück
-        </Link>
-      </Button>
+        <Button variant="link" asChild className="w-full mt-4">
+          <Link to="/drinks">
+            <ArrowLeft/>
+            zurück
+          </Link>
+        </Button>
+      </div>
     </>
   );
 }
