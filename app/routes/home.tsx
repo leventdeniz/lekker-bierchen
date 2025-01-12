@@ -17,22 +17,23 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  // const logs = await db.select()
-  //                      .from(drinks)
-  //                      .leftJoin(breweries, eq(drinks.brewery, breweries.id))
-  //                      .orderBy(drinks.createdAt)
-  //                      .limit(10);
   const drinks = await db.query.drinks.findMany({
-                                                  with: {
-                                                    brewery: true,
-                                                  },
-                                                });
+    with: {
+      brewery: true,
+    },
+  });
   const logs = await db.query.drinking_logs.findMany({
-                                                       with: {
-                                                         drink: true,
-                                                         rating: true,
-                                                       },
-                                                     });
+    with: {
+     drink: {
+       with: {
+         brewery: true,
+       }
+     },
+     rating: true,
+    },
+    limit: 5,
+ });
+
   console.log({ drinks });
   return { drinks, logs };
 }

@@ -1,5 +1,6 @@
-import type { DrinkingLogType, DrinkType, RatingType } from '~/db/schema';
-import { Card } from '~/components/ui/card';
+import type { BreweryType, DrinkingLogType, DrinkType, RatingType } from '~/db/schema';
+import { Card, CardDescription, CardTitle } from '~/components/ui/card';
+import { format } from 'date-fns';
 
 const mockDrinkLog: (Omit<DrinkingLogType, 'rating' | 'drink'> & { rating?: RatingType; drink: DrinkType })[] = [
   {
@@ -28,41 +29,32 @@ const mockDrinkLog: (Omit<DrinkingLogType, 'rating' | 'drink'> & { rating?: Rati
 ];
 
 
+type RecentDrinksListProps = {
+  logs: Array<Pick<DrinkingLogType, 'createdAt' | 'id'> & { rating?: number & RatingType; drink: Omit<DrinkType, 'brewery'> & { brewery?: number & BreweryType}  }>;
+}
 
-
-const RecentDrinksList = ({ logs }) => {
-  console.log({ logs });
-
+const RecentDrinksList = ({ logs }: RecentDrinksListProps) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mx-4">
-      {mockDrinkLog.map((log) => (
-        <Card key={log.id} className="p-6 bg-beer-cream/50 backdrop-blur-sm">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-xl font-semibold text-beer-dark">{log.drink.name}</h3>
-              <p className="text-beer-brown">{log.drink.brewery}</p>
-            </div>
-
-            <div className="text-sm text-beer-brown">
-              <p>ABV: {log.drink.alcoholPercentage}%</p>
-            </div>
-            {log.rating && (
-              <div className="space-y-2">
-                <h4 className="font-medium text-beer-dark">Ratings</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p>Sweetness: {log.rating.sweetness}/5</p>
-                  <p>Bitterness: {log.rating.bitterness}/5</p>
-                  <p>Sourness: {log.rating.sourness}/5</p>
-                  <p>Overall: {log.rating.overallRating}/5</p>
-                </div>
-                {log.rating.notes && (
-                  <p className="text-sm italic">"{log.rating.notes}"</p>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
-      ))}
+      {logs.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-x-scroll overflow-y-visible p-0.5 -m-0.5">
+          {logs.map((log) => (
+            <Card className="">
+              <CardTitle>{format(log.createdAt, 'dd.MM.yy HH:mm')}</CardTitle>
+              <CardDescription>{`${log.drink.brewery?.name} ${log.drink.name}`}</CardDescription>
+              {log.rating && (
+                <>
+                  <CardDescription>Bitter: {log.rating.bitterness}</CardDescription>
+                  <CardDescription>Säure: {log.rating.sourness}</CardDescription>
+                  <CardDescription>Süße: {log.rating.sweetness}</CardDescription>
+                  <CardDescription>Gesamt: {log.rating.overallRating}</CardDescription>
+                  <CardDescription>Notitzen: {log.rating.notes}</CardDescription>
+                </>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

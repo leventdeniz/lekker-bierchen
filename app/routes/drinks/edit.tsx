@@ -37,7 +37,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === 'delete') {
     await db.delete(drinks).where(eq(drinks.id, Number(params.id)));
-    return redirect(`/drinks/${params.id}`);
+    return redirect("/drinks");
   }
 
   const name = formData.get('name') as string;
