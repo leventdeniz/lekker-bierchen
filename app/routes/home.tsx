@@ -3,10 +3,7 @@ import AddBeerButton from '~/components/add-beer-button';
 import BarcodeScanner from '~/components/barcode-scanner';
 import RecentDrinksList from '~/components/recent-drinks-list';
 import { db } from '~/db';
-import { breweries, drinks } from '~/db/schema';
-import { eq } from 'drizzle-orm';
 import { Link, redirect } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 
 export function meta({}: Route.MetaArgs) {

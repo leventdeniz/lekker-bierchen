@@ -1,6 +1,7 @@
 import type { BreweryType, DrinkingLogType, DrinkType, RatingType } from '~/db/schema';
 import { Card, CardDescription, CardTitle } from '~/components/ui/card';
 import { format } from 'date-fns';
+import type { Route } from '../../.react-router/types/app/routes/+types/home';
 
 const mockDrinkLog: (Omit<DrinkingLogType, 'rating' | 'drink'> & { rating?: RatingType; drink: DrinkType })[] = [
   {
@@ -30,7 +31,7 @@ const mockDrinkLog: (Omit<DrinkingLogType, 'rating' | 'drink'> & { rating?: Rati
 
 
 type RecentDrinksListProps = {
-  logs: Array<Pick<DrinkingLogType, 'createdAt' | 'id'> & { rating?: number & RatingType; drink: Omit<DrinkType, 'brewery'> & { brewery?: number & BreweryType}  }>;
+  logs: Route.ComponentProps['loaderData']['logs'];
 }
 
 const RecentDrinksList = ({ logs }: RecentDrinksListProps) => {
