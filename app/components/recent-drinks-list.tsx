@@ -41,8 +41,8 @@ const RecentDrinksList = ({ logs }: RecentDrinksListProps) => {
         <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-x-scroll overflow-y-visible p-0.5 -m-0.5">
           {logs.map((log) => (
             <Card className="">
-              <CardTitle>{format(log.createdAt, 'dd.MM.yy HH:mm')}</CardTitle>
-              <CardDescription>{`${log.drink.brewery?.name} ${log.drink.name}`}</CardDescription>
+              <CardDescription>{format(log.createdAt, 'dd.MM.yy HH:mm')}</CardDescription>
+              <CardTitle>{`${log.drink.brewery?.name} ${log.drink.name}`}</CardTitle>
               {log.rating && (
                 <>
                   <CardDescription>Bitter: {log.rating.bitterness}</CardDescription>

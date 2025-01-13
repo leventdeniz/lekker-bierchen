@@ -122,8 +122,10 @@ export default function DrinksHome({ loaderData }: Route.ComponentProps) {
               />
               <Dialog open={showBarcodeScanner} onOpenChange={setShowBarcodeScanner}>
                 <DialogTrigger>
-                  <Button size="icon" variant="secondary">
-                    <Camera/>
+                  <Button size="icon" asChild  variant="secondary">
+                   <div>
+                     <Camera/>
+                   </div>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>

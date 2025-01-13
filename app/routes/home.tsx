@@ -31,7 +31,6 @@ export async function loader({ params }: Route.LoaderArgs) {
     limit: 5,
  });
 
-  console.log({ drinks });
   return { drinks, logs };
 }
 
@@ -44,7 +43,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     if (drink) {
       navigate(`/drinks/${drink.id}`);
     } else {
-      navigate(`/drinks/new?barcode=${barcode}`);
+      navigate(`/drinks?barcode=${barcode}`);
     }
   };
   return (
